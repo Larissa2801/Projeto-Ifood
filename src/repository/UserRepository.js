@@ -1,16 +1,11 @@
 // src/repository/UserRepository.js
 
-// 1. Importa a instância do Prisma Client configurada
 const prisma = require("../config/prisma.js");
 
 class UserRepository {
-  // O método de criação deve ser ASSÍNCRONO e usar await
+  // [CREATE]
   async create(userData) {
-    // 2. Usar o método .create() do Prisma para salvar na tabela 'user'
-
-    // --- CORREÇÃO APLICADA AQUI ---
-    // 1. Garante que userData contém apenas campos aceitáveis pelo modelo.
-    // 2. Define userType explicitamente se não estiver em userData (opcional, mas mais seguro se o default for CLIENT)
+    // ... (Seu código de create está correto, sem updatedAt)
     const { name, phone, password, userType } = userData;
 
     const newUser = await prisma.user.create({
@@ -20,9 +15,6 @@ class UserRepository {
         password: password,
         userType: userType || "CLIENT",
       },
-      // --- FIM DA CORREÇÃO ---
-
-      // Opcional: Seleciona quais campos retornar (removendo o "select" da senha no futuro)
       select: {
         id: true,
         name: true,
@@ -32,27 +24,73 @@ class UserRepository {
         updatedAt: true,
       },
     });
-
     return newUser;
   }
 
-  // O método de busca deve ser assíncrono
+  // [READ ONE]
   async findById(id) {
-    // Busca um único registro
     return prisma.user.findUnique({
       where: {
-        // Assume que 'id' no seu modelo 'user' é um BigInt.
-        // O Prisma geralmente faz a conversão de string para BigInt se o driver suportar.
         id: BigInt(id),
+      },
+      select: {
+        // Seleciona os mesmos campos do create
+        id: true,
+        name: true,
+        phone: true,
+        userType: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }
 
-  // O método de busca de todos deve ser assíncrono
+  // [READ ALL]
   async findAll() {
-    return prisma.user.findMany();
+    return prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        userType: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  // [UPDATE]
+  async update(id, userData) {
+    return prisma.user.update({
+      where: {
+        id: BigInt(id),
+      },
+      data: userData, // Recebe o objeto com os campos a serem alterados
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        userType: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  // [DELETE]
+  async delete(id) {
+    // Retorna o objeto deletado
+    return prisma.user.delete({
+      where: {
+        id: BigInt(id),
+      },
+      select: {
+        id: true,
+        name: true,
+        userType: true,
+      },
+    });
   }
 }
 
-// Exporta uma nova instância da classe
 module.exports = new UserRepository();
